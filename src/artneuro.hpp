@@ -54,9 +54,11 @@ class ARTNeurone
 	public:
 		virtual float CalculerInhibation();
 		virtual float CalculerExitation();
+
 	public:
 		ARTNeurone(ARTCouche* pCouche, int nombreLiens);
 		virtual ~ARTNeurone();
+	
 	public:
 		virtual ARTCouche* CoucheART()	    { return (ARTCouche*) Couche(); }
 		virtual void Desactiver();
