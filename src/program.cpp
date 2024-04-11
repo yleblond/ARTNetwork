@@ -48,7 +48,7 @@ int main() {
 
 	ARTNetwork hello(nTrainingEntrees,nTrainingEntrees /*11*/);
 
-	int usedInputsForTraining = 10000; //nTrainingExemples;
+	int usedInputsForTraining = nTrainingExemples;
 	std::cout << "\nApprentisage\n" << usedInputsForTraining << " examples\n";
 	int cas;
 	for(int j=0;j< usedInputsForTraining;j++)
