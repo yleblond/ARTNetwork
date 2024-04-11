@@ -1,11 +1,22 @@
 #include <string.h>
+#include "image.hpp"
+#include <iostream>
+#include <fstream>
+
+#define NSORTIES	8
+
+#define LEARNING_LOOPS	50
+#define LEARNING_ITERATION	500
+
+#define QUERY_ITERATION	40
+
+#define WEIGHT_DISPLAY_THREESHOLD	0.08
 
 #define K 1.0
 #define _ 0.0
 
 #define NEXEMPLE	8
 #define NENTREES	9
-#define NSORTIES	8
 
 float lettre_C[NENTREES] ={ 	K,K,K,
 								K,_,_,
@@ -41,7 +52,7 @@ float lettre_O[NENTREES] ={ 	_,K,_,
 
 typedef float* Figure;
 
-Figure* getPattern(char* buffer,int& ne,int &ni)
+Figure* getPattern(int& ne,int &ni)
 {
 	ne = NEXEMPLE;
 	ni = NENTREES;
@@ -55,6 +66,37 @@ Figure* getPattern(char* buffer,int& ne,int &ni)
 	figure[6] = lettre_D;
 	figure[7] = lettre_O;
 	figure[NEXEMPLE]=0;
-	strcpy(buffer,"CTUXLHDO");
 	return figure;
+}
+
+
+Image** getImages(int& ne,int &ni, int& w,int &h)
+{
+	float** patterns = getPattern(ne,ni);
+
+	Image** figure = (Image**) calloc(ne+1,sizeof(Image*));
+
+    for(int k = 0; k < ne; k++) {
+    	// create image object
+    	figure[k] = new Image();
+    	figure[k]->setData(patterns[k]);
+    	figure[k]->setLabel('-');
+        figure[k]->setDimensions(3, 3);
+    }
+	figure[ne]=0;
+
+	w=3;
+	h=3;
+
+	return figure;
+}
+
+Image** getLearningPattern(int& ne,int &ni, int& w,int &h)
+{
+	return getImages(ne,ni,w,h);
+}
+
+Image** getReconnaissancePattern(int& ne,int &ni, int& w,int &h)
+{
+	return getImages(ne,ni,w,h);
 }

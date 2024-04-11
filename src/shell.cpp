@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "debug.hpp"
+#include "shell.hpp"
 
 int Message( const char *sMessage )
 {
@@ -22,4 +22,12 @@ int Erreur( const char *sMessage )
 	char c;
 	std::cin >> c;
 	return 0;
+}
+
+std::string Attendre(const char* s)
+{
+	std::string texte;
+	std::cout << "\n" << s << "\n";
+	std::getline(std::cin, texte);
+	return texte;
 }

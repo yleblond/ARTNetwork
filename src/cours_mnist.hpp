@@ -1,9 +1,16 @@
-
 #include <iostream>
+#include "image.hpp"
 #include <fstream>
 #include <string>
 
-#include "art/image.hpp"
+#define NSORTIES	50
+
+#define LEARNING_LOOPS	1
+#define LEARNING_ITERATION	100
+
+#define QUERY_ITERATION	100
+
+#define WEIGHT_DISPLAY_THREESHOLD	0.01
 
 typedef unsigned char uchar;
 
@@ -129,7 +136,7 @@ int test(void)
     return 0;
 }
 
-Image** getMnistFiles(const char* labelFile, const char* imageFile,int& ne,int &ni)
+Image** getMnistFiles(const char* labelFile, const char* imageFile,int& ne,int &ni, int& w,int &h)
 {
     printf("Load MNIST files !!!\n");
     
@@ -144,22 +151,24 @@ Image** getMnistFiles(const char* labelFile, const char* imageFile,int& ne,int &
 
     printf("numberOfImages %d\n", numberOfImages);
     printf("image_size %d\n", image_size);
+    printf("image_width %d\n", image_width);
+    printf("image_heigth %d\n", image_heigth);
     printf("numberOfLabels %d\n", numberOfLabels);
 
-        
-        for(int i = 0; i < numberOfLabels; i++) {
-		    printf("label[%d] -> %d\n", i, labels[i]);
-        }
-
-       for(int j = 0; j < numberOfImages; j++) {
+/*       
+    for(int i = 0; i < numberOfLabels; i++) {
+        printf("label[%d] -> %d\n", i, labels[i]);
+    }
+    for(int j = 0; j < numberOfImages; j++) {
 		    printf("image[%d] : %d\n", j, (j<numberOfLabels) ? labels[j] : -1);
 		    // printArrayAsHex(images[j], image_size, image_width);
         }
+*/
            
 	ne = numberOfImages;
 	ni = image_size;
-	
-	printf("ne %d ni %d\n", ne, ni);
+	w = image_width;
+    h = image_heigth;
 
 	Image** figure = (Image**) calloc(numberOfImages+1,sizeof(Image*));
 
@@ -173,22 +182,22 @@ Image** getMnistFiles(const char* labelFile, const char* imageFile,int& ne,int &
     	}
     	// create image object
     	figure[k] = new Image();
-    	printf("create Image %d -> %d\n", k, labels[k]);
     	figure[k]->setData(image);
     	figure[k]->setLabel(labels[k]);
+        figure[k]->setDimensions(image_width, image_heigth);
     }
-	// figure[numberOfImages]=0;
+	figure[numberOfImages]=0;
 
 	return figure;
 }
 
-Image** getLearningPattern(int& ne,int &ni)
+Image** getLearningPattern(int& ne,int &ni, int& w,int &h)
 {
-	return getMnistFiles("./train-labels.idx1-ubyte","./train-images.idx3-ubyte",ne,ni);
+	return getMnistFiles("./train-labels.idx1-ubyte","./train-images.idx3-ubyte",ne,ni,w,h);
 }
 
-Image** getReconnaissancePattern(int& ne,int &ni)
+Image** getReconnaissancePattern(int& ne,int &ni, int& w,int &h)
 {
-	return getMnistFiles("./t10k-labels.idx1-ubyte","./t10k-images.idx3-ubyte",ne,ni);
+	return getMnistFiles("./t10k-labels.idx1-ubyte","./t10k-images.idx3-ubyte",ne,ni,w,h);
 }
 
