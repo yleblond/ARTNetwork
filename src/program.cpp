@@ -8,6 +8,7 @@
 #include "artneuro.hpp"
 #include "shell.hpp"
 
+
 #include "cours_mnist.hpp"
 // #include "cours_2.hpp"
 
@@ -21,25 +22,28 @@ std::string getFloatArrayString(float data[], int size ) {
 }
 
 int main() {
-	// char buffer[100];
-	// char outputbuffer[100];
-	// strcpy(outputbuffer,"ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 
+	ImageSet* learningFigure = getLearningPattern();
 
-	int nTrainingExemples,nTrainingEntrees;
-	int width,height;
-	Image** learningFigure = getLearningPattern(nTrainingExemples,nTrainingEntrees, width, height);
+	ARTSettings* artSettings = getNetworkSettings();
+	ProcessSettings* prgSettings = getProcessSettings();
 
-	ARTNetwork hello(nTrainingEntrees,NSORTIES); 
+	ARTNetwork hello(artSettings, learningFigure->nEntrees, artSettings->nOutputs); 
 
-	int usedInputsForTraining = nTrainingExemples;
+	int usedInputsForTraining = learningFigure->nExemples;
+	if (prgSettings->LEARNING_MAXITEMS>=0) {
+		if (usedInputsForTraining > prgSettings->LEARNING_MAXITEMS) {
+			usedInputsForTraining = prgSettings->LEARNING_MAXITEMS;
+		}
+	}
+
 	std::cout << "Apprentisage\n" << usedInputsForTraining << " examples\n";
-	int cas;
-	for (int iter=0;iter<LEARNING_LOOPS;iter++) {
+
+	for (int iter=0;iter<prgSettings->LEARNING_LOOPS;iter++) {
 		for(int j=0;j< usedInputsForTraining;j++) {
-			std::cout << "Apprentissage "<< j << "/" << usedInputsForTraining << " -> " << std::to_string(learningFigure[j]->getLabel()) << "\n";
-			learningFigure[j]->display(0.5);
-			hello.Apprendre(learningFigure[j]->getData(),LEARNING_ITERATION);
+			std::cout << "Apprentissage "<< j << "/" << usedInputsForTraining << " -> " << std::to_string(learningFigure->learningFigure[j]->getLabel()) << "\n";
+			learningFigure->learningFigure[j]->display(0.5);
+			hello.Apprendre(learningFigure->learningFigure[j]->getData(),prgSettings->LEARNING_ITERATION);
 		}
 	}
 
@@ -47,29 +51,35 @@ int main() {
 
 	Attendre("Fin Apprentissage\n");
 
-	hello.Outputs()->displayAllPoids(WEIGHT_DISPLAY_THREESHOLD, width);
+	hello.Outputs()->displayAllPoids(artSettings->WEIGHT_DISPLAY_THREESHOLD, learningFigure->width);
 
 	Attendre("Launch Test\n");
 
-	int nTestExemples,nTestEntrees;
-	Image** testFigure = getReconnaissancePattern(nTestExemples,nTestEntrees, width, height);
-	std::cout << "Reconnaissance\nEntries"  << nTestEntrees << " ("<< nTrainingEntrees <<")\n";
+	ImageSet* testFigure = getReconnaissancePattern();
+	std::cout << "Reconnaissance\nEntries"  << testFigure->nEntrees << " ("<< learningFigure->nEntrees <<")\n";
 	
-	int usedInputsForTest =  nTestExemples;
+	int usedInputsForTest =  testFigure->nExemples;
+	if (prgSettings->QUERY_MAXITEMS>=0) {
+		if (usedInputsForTest > prgSettings->QUERY_MAXITEMS) {
+			usedInputsForTest = prgSettings->QUERY_MAXITEMS;
+		}
+	}
 
 	std::cout << "Reconnaissance\n"  << usedInputsForTest << " examples\n";
 	for(int i=0;i<usedInputsForTest;i++) {
-		std::cout << "Reconnaissance " << i << "/" << usedInputsForTest << " -> " << std::to_string(testFigure[i]->getLabel()) <<"\n";;
-		testFigure[i]->display(0.5);
+		std::cout << "Reconnaissance " << i << "/" << usedInputsForTest << " -> " << std::to_string(testFigure->learningFigure[i]->getLabel()) <<"\n";;
+		testFigure->learningFigure[i]->display(0.5);
 		// std::cout << "\nInputLayer : " << getFloatArrayString(testFigure[i], nentrees);
 		// std::cout << "\n";
-		hello.Demander(testFigure[i]->getData(),QUERY_ITERATION);
+		hello.Demander(testFigure->learningFigure[i]->getData(),prgSettings->QUERY_ITERATION);
 		hello.DisplayOutput();
+		std::cout << "\n";
 		
-		ARTNeurone* bestMatch = hello.Outputs()->BestMatch();
+		ARTNeuron* bestMatch = hello.Outputs()->BestMatch();
 		if (bestMatch) {
-			bestMatch->displayPoids(WEIGHT_DISPLAY_THREESHOLD, width);
+			bestMatch->displayPoids(artSettings->WEIGHT_DISPLAY_THREESHOLD, testFigure->width);
 		} 
+				std::cout << "\n";
 	}
 
 	Attendre("Fin Reconnaissance\n");

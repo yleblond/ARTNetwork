@@ -5,26 +5,26 @@
 #include <iostream>
 
 // **********************************************************************
-// IMPLEMENTATION ARTNeurone
+// IMPLEMENTATION ARTNeuron
 // **********************************************************************
 
-ARTNeurone::ARTNeurone(ARTCouche* pCouche,int nombreLiens)
+ARTNeuron::ARTNeuron(ARTLayer* pCouche,int nombreLiens)
 {
 	activite = 0.0;
 	sortie   = 0.0;
-	couche = pCouche;
+	layer = pCouche;
 	poids=0;
 	CreerLiens(nombreLiens);
 }
 
-ARTNeurone::~ARTNeurone()
+ARTNeuron::~ARTNeuron()
 {
 	if (poids)
 		delete [] poids;
 }
 
 
-void ARTNeurone::CreerLiens(int nombre)
+void ARTNeuron::CreerLiens(int nombre)
 {
 	if (nombre<1)
 		return;
@@ -32,61 +32,61 @@ void ARTNeurone::CreerLiens(int nombre)
 	nombrePoids = nombre;
 	poids = new float[nombrePoids];
 	for(int i=0;i<nombrePoids;i++) {
-		poids[i] = couche->PoidAleatoire();
+		poids[i] = layer->PoidAleatoire();
 	}
 }
 
-void ARTNeurone::Desactiver()
+void ARTNeuron::Desactiver()
 {
 	activite=0.0;
 	Sortie(0.0);
 }
 
-float ARTNeurone::CalculerInhibation()
+float ARTNeuron::CalculerInhibation()
 {
-	Erreur("ARTNeurone::CalculerInhibation");
+	Erreur("ARTNeuron::CalculerInhibation");
 	return 0;
 }
 
-float ARTNeurone::CalculerExitation()
+float ARTNeuron::CalculerExitation()
 {
-	Erreur("ARTNeurone::CalculerExitation");
+	Erreur("ARTNeuron::CalculerExitation");
 	return 0;
 }
 
-void ARTNeurone::CalculerVariation()
+void ARTNeuron::CalculerVariation()
 {
 	/* CALCUL DE LA SOMME DES ENTREES */
 	float exitation  = CalculerExitation();
 	float inhibation = CalculerInhibation();
 
 	/* CALCUL DU D_ACTIVITE */
-	variationActivite = CoucheART()->ReseauART()->Reactivite()
+	variationActivite = Layer()->Network()->Reactivite()
 	* (
 	  - activite
-	  + exitation  * (1- CoucheART()->Persistance() * activite)
-	  - inhibation * (CoucheART()->Inhibation() + CoucheART()->AutoInhibation() * activite)
+	  + exitation  * (1- Layer()->Persistance() * activite)
+	  - inhibation * (Layer()->Inhibation() + Layer()->AutoInhibation() * activite)
 	  );
 }
 
-float ARTNeurone::CalculerActivite()
+float ARTNeuron::CalculerActivite()
 {
-	Erreur("ARTNeurone::CalculerActivite");
+	Erreur("ARTNeuron::CalculerActivite");
 	return 0.0;
 }
 
-float ARTNeurone::CalculerSortie()
+float ARTNeuron::CalculerSortie()
 {
 	Sortie( (activite>0.0) ? 1.0 : 0.0 );
 	return Sortie();
 }
 
-void ARTNeurone::CalculerPoids()
+void ARTNeuron::CalculerPoids()
 {
-	Erreur("ARTNeurone::CalculerPoids");
+	Erreur("ARTNeuron::CalculerPoids");
 }
 
-void ARTNeurone::displayPoids(float threshold, int width) {
+void ARTNeuron::displayPoids(float threshold, int width) {
 		for (int i = 0; i < nombrePoids; i++) {
 			if (i%width) {
 			} else {
@@ -98,15 +98,15 @@ void ARTNeurone::displayPoids(float threshold, int width) {
 	}
 
 // **********************************************************************
-// IMPLEMENTATION ARTCouche
+// IMPLEMENTATION ARTLayer
 // **********************************************************************
 
 
-ARTCouche::ARTCouche(ARTNetwork* reseauART)
+ARTLayer::ARTLayer(ARTNetwork* reseauART)
 {
-	reseau=reseauART;
+	network=reseauART;
 
-	neurones=0;
+	neurons=0;
 
 	activiteTotale=0;
 	sortieTotale=0;
@@ -118,58 +118,58 @@ ARTCouche::ARTCouche(ARTNetwork* reseauART)
 	plasticite     = 0;
 }
 
-ARTCouche::~ARTCouche()
+ARTLayer::~ARTLayer()
 {
-	if (neurones)
+	if (neurons)
 	{
-		for (int i=0; neurones[i]; i++)
-			delete neurones[i];
-		delete [] neurones;
+		for (int i=0; neurons[i]; i++)
+			delete neurons[i];
+		delete [] neurons;
 	}
 }
 
-void ARTCouche::DesactiverNeurones()
+void ARTLayer::DesactiverNeurones()
 {
-	for (int i=0;Neurone(i);i++)
-		NeuroneART(i)->Desactiver();
+	for (int i=0;Neuron(i);i++)
+		Neuron(i)->Desactiver();
 	activiteTotale=0;
 	sortieTotale=0;
 }
 
-void ARTCouche::CalculerActivite()
+void ARTLayer::CalculerActivite()
 {
-	for (int i=0;Neurone(i);i++) {
-		NeuroneART(i)->CalculerVariation();
+	for (int i=0;Neuron(i);i++) {
+		Neuron(i)->CalculerVariation();
 	}
 
 	activiteTotale=0;
-	for (int j=0;Neurone(j);j++) {
-		activiteTotale += NeuroneART(j)->CalculerActivite();
+	for (int j=0;Neuron(j);j++) {
+		activiteTotale += Neuron(j)->CalculerActivite();
 	}
 
 	sortieTotale=0;
-	for (int k=0;Neurone(k);k++) {
-		sortieTotale   += NeuroneART(k)->CalculerSortie();
+	for (int k=0;Neuron(k);k++) {
+		sortieTotale   += Neuron(k)->CalculerSortie();
 	}
 }
 
-void ARTCouche::CalculerPoids()
+void ARTLayer::CalculerPoids()
 {
-	for (int i=0;Neurone(i);i++)
-		NeuroneART(i)->CalculerPoids();
+	for (int i=0;Neuron(i);i++)
+		Neuron(i)->CalculerPoids();
 }
 
-float ARTCouche::PoidAleatoire()
+float ARTLayer::PoidAleatoire()
 {
-	Erreur("ARTCouche::PoidAleatoire\n");
+	Erreur("ARTLayer::PoidAleatoire\n");
 	return 0;
 }
 
-void ARTCouche::displayAllPoids(float threshold, int width) {
+void ARTLayer::displayAllPoids(float threshold, int width) {
 	std::cout << "displayAllPoids()\n";
-	for (int i=0; neurones[i]; i++){
+	for (int i=0; neurons[i]; i++){
 		std::cout << "Output("<< i <<")\n";
-		neurones[i]->displayPoids( threshold, width);
+		neurons[i]->displayPoids( threshold, width);
 		std::cout << "\n";
 	}
 }
@@ -180,21 +180,21 @@ void ARTCouche::displayAllPoids(float threshold, int width) {
 
 float ARTInput::CalculerInhibation()
 {
-//	ARTOutputLayer* coucheSortie = CoucheART()->ReseauART()->Outputs();
+//	ARTOutputLayer* coucheSortie = Layer()->Network()->Outputs();
 //	float inhibation = 0;	/* Sigma(Sj) */
-//	for (int j=0; coucheSortie->Neurone(j); j++)
-//		inhibation = inhibation + coucheSortie->Neurone(j)->Sortie();
-	return CoucheART()->ReseauART()->Outputs()->SortieTotale();
+//	for (int j=0; coucheSortie->Neuron(j); j++)
+//		inhibation = inhibation + coucheSortie->Neuron(j)->Sortie();
+	return Layer()->Network()->Outputs()->SortieTotale();
 //	return inhibation;
 }
 
 float ARTInput::CalculerExitation()
 {
-	ARTOutputLayer* coucheSortie = CoucheART()->ReseauART()->Outputs();
+	ARTOutputLayer* coucheSortie = Layer()->Network()->Outputs();
 	float exitation = 0; 	/* Ei + k21 * Sigma(Sj.Pji) */
-	for (int j=0; coucheSortie->Neurone(j); j++)
-		exitation += coucheSortie->Neurone(j)->Sortie() * poids[j];
-	exitation *= CoucheART()->Renforcement();
+	for (int j=0; coucheSortie->Neuron(j); j++)
+		exitation += coucheSortie->Neuron(j)->Sortie() * poids[j];
+	exitation *= Layer()->Renforcement();
 	exitation += entree;
 	return exitation;
 }
@@ -211,11 +211,11 @@ float ARTInput::CalculerActivite()
 
 void ARTInput::CalculerPoids()
 {
-	ARTOutputLayer* coucheSortie = CoucheART()->ReseauART()->Outputs();
+	ARTOutputLayer* coucheSortie = Layer()->Network()->Outputs();
 	int iR = coucheSortie->IndexRaisonnance();
 	if (iR != -1)
-		poids[iR ] += CoucheART()->Plasticite()
-						*  coucheSortie->Neurone(iR)->Sortie()
+		poids[iR ] += Layer()->Plasticite()
+						*  coucheSortie->Neuron(iR)->Sortie()
 						*  ( - poids[iR] + Sortie() );
 }
 
@@ -225,16 +225,16 @@ void ARTInput::CalculerPoids()
 // **********************************************************************
 
 
-ARTInputLayer::ARTInputLayer(ARTNetwork* reseauART,int nE,int nS) : ARTCouche(reseauART)
+ARTInputLayer::ARTInputLayer(ARTNetwork* reseauART,int nE,int nS) : ARTLayer(reseauART)
 {
-	persistance    = I_PERSISTANCE; 		/* k_A1 	*/
-	renforcement   = I_RENFORCEMENT;		/* k_F2_F1 	*/
-	inhibation     = I_INHIBATION;			/* k_F1		*/
-	autoInhibation = I_AUTOINHIBATION;		/* k_C1		*/
-	plasticite     = I_PLASTICITE;			/* k_poids_F2_F1 */
+	persistance    = reseauART->settings->I_PERSISTANCE; 		/* k_A1 	*/
+	renforcement   = reseauART->settings->I_RENFORCEMENT;		/* k_F2_F1 	*/
+	inhibation     = reseauART->settings->I_INHIBATION;			/* k_F1		*/
+	autoInhibation = reseauART->settings->I_AUTOINHIBATION;		/* k_C1		*/
+	plasticite     = reseauART->settings->I_PLASTICITE;			/* k_poids_F2_F1 */
 
 	poidMinimum	   = (inhibation - 1.0 ) / renforcement;
-	vigilance	   = I_VIGILANCE;			/* vigilance */
+	vigilance	   = reseauART->settings->I_VIGILANCE;			/* vigilance */
 
 	CreerNeurones(nE, nS);
 }
@@ -246,16 +246,16 @@ float ARTInputLayer::PoidAleatoire()
 
 void ARTInputLayer::CreerNeurones(int nombre, int nombreS)
 {
-	neurones = new pARTNeurone[nombre+1];
+	neurons = new pARTNeuron[nombre+1];
 	for(int i=0;i<nombre;i++)
-		neurones[i]=new ARTInput(this,nombreS);
-	neurones[nombre]=0;
+		neurons[i]=new ARTInput(this,nombreS);
+	neurons[nombre]=0;
 }
 
 void ARTInputLayer::AffecterEntree(float* figure)
 {
-	for (int i=0; neurones[i]; i++)
-		((ARTInput*)neurones[i])->Entree(figure[i]);
+	for (int i=0; neurons[i]; i++)
+		((ARTInput*)neurons[i])->Entree(figure[i]);
 }
 
 int ARTInputLayer::NecessiteReset()
@@ -263,11 +263,11 @@ int ARTInputLayer::NecessiteReset()
 	int nEntreesActives=0;
 	int nSortiesActives=0;
 
-	for (int i=0; neurones[i]; i++)
+	for (int i=0; neurons[i]; i++)
 	{
-		if ( ((ARTInput*)neurones[i])->Entree()   > 0.0)
+		if ( ((ARTInput*)neurons[i])->Entree()   > 0.0)
 			nEntreesActives++;
-		if ( neurones[i]->Sortie()   > 0.0)
+		if ( neurons[i]->Sortie()   > 0.0)
 			nSortiesActives++;
 	}
 
@@ -299,17 +299,17 @@ float ARTOutput::CalculerSortie()
 {
 	if (isReset)
 		return 0.0;
-	return ARTNeurone::CalculerSortie();
+	return ARTNeuron::CalculerSortie();
 }
 
 float ARTOutput::CalculerInhibation()
 {
 	/* CALCUL DE L'INHIBATION */ /* -Aj + Sigma(Aj) */
 /*	float inhibation = -Sortie();
-	for (int j=0; Couche()->Neurone(j); j++)
-		inhibation += Couche()->Neurone(j)->Sortie();*/
+	for (int j=0; Layer()->Neuron(j); j++)
+		inhibation += Layer()->Neuron(j)->Sortie();*/
 
-	return CoucheART()->SortieTotale()-Sortie();
+	return Layer()->SortieTotale()-Sortie();
 /*	if (inhibation!=in2)
 		std::cout << "(" << inhibation << " ; " << in2 << ")\n";
 
@@ -318,13 +318,13 @@ float ARTOutput::CalculerInhibation()
 
 float ARTOutput::CalculerExitation()
 {
-	ARTInputLayer*   coucheEntree = CoucheART()->ReseauART()->Inputs();
+	ARTInputLayer*   coucheEntree = Layer()->Network()->Inputs();
 
 	/* CALCUL DE L'EXITATION */ /* Aj + k12 * Sigma(Si.Pij) */
 	float exitation = 0.0;
-	for (int i=0; coucheEntree->Neurone(i); i++)
-		exitation += poids[i] * coucheEntree->Neurone(i)->Sortie();
-	exitation *= CoucheART()->Renforcement();
+	for (int i=0; coucheEntree->Neuron(i); i++)
+		exitation += poids[i] * coucheEntree->Neuron(i)->Sortie();
+	exitation *= Layer()->Renforcement();
 	exitation += activite;
 	return exitation;
 }
@@ -342,23 +342,23 @@ float ARTOutput::CalculerActivite()
 
 void ARTOutput::CalculerPoids()
 {
-	ARTInputLayer*   coucheEntree = CoucheART()->ReseauART()->Inputs();
+	ARTInputLayer*   coucheEntree = Layer()->Network()->Inputs();
 
 	float sommeToutesEntres = coucheEntree->SortieTotale(); //0.0;
-//	for (int i=0; coucheEntree->Neurone(i); i++)
-//		sommeToutesEntres += coucheEntree->Neurone(i)->Sortie();
+//	for (int i=0; coucheEntree->Neuron(i); i++)
+//		sommeToutesEntres += coucheEntree->Neuron(i)->Sortie();
 
-	for (int i=0; coucheEntree->Neurone(i); i++)
+	for (int i=0; coucheEntree->Neuron(i); i++)
 	{
 		poids[i] +=
-			CoucheART()->Plasticite()
+			Layer()->Plasticite()
 			* Sortie()
 			* ( 	( 1 - poids[i])
-					* ((ARTOutputLayer*)CoucheART())->ContraintePlasticite()
-					* coucheEntree->Neurone(i)->Sortie()
+					* ((ARTOutputLayer*)Layer())->ContraintePlasticite()
+					* coucheEntree->Neuron(i)->Sortie()
 				- 	poids[i]
 					* (	sommeToutesEntres
-						- coucheEntree->Neurone(i)->Sortie()));
+						- coucheEntree->Neuron(i)->Sortie()));
 		if (poids[i] < 0.0)
 			poids[i] = 0.0;
 	}
@@ -373,14 +373,14 @@ void ARTOutput::CalculerPoids()
 // **********************************************************************
 
 
-ARTOutputLayer::ARTOutputLayer(ARTNetwork* reseauART, int nS, int nE) : ARTCouche(reseauART)
+ARTOutputLayer::ARTOutputLayer(ARTNetwork* reseauART, int nS, int nE) : ARTLayer(reseauART)
 {
 
-	persistance    		= O_PERSISTANCE; 		/* k_A2 				*/
-	renforcement   		= O_RENFORCEMENT;		/* k_F1_F2 				*/
-	inhibation     		= O_INHIBATION;			/* k_inhibe_F2			*/
-	autoInhibation 		= O_AUTOINHIBATION;		/* k_C2					*/
-	contraintePlasticite= O_CONTRAINTE_PLASTICITE; /* k_F1_Poids_F1_F2		*/
+	persistance    		= reseauART->settings->O_PERSISTANCE; 		/* k_A2 				*/
+	renforcement   		= reseauART->settings->O_RENFORCEMENT;		/* k_F1_F2 				*/
+	inhibation     		= reseauART->settings->O_INHIBATION;			/* k_inhibe_F2			*/
+	autoInhibation 		= reseauART->settings->O_AUTOINHIBATION;		/* k_C2					*/
+	contraintePlasticite= reseauART->settings->O_CONTRAINTE_PLASTICITE; /* k_F1_Poids_F1_F2		*/
 
 	poidMaximum = contraintePlasticite
 					  / ( contraintePlasticite  - 1.0  + (float)nE	);
@@ -396,40 +396,40 @@ float ARTOutputLayer::PoidAleatoire()
 
 void ARTOutputLayer::CreerNeurones(int nombre, int nombreE)
 {
-	neurones = new pARTNeurone[nombre+1];
+	neurons = new pARTNeuron[nombre+1];
 
 	for(int i=0;i<nombre;i++) {
-		neurones[i]=new ARTOutput(this,nombreE);
+		neurons[i]=new ARTOutput(this,nombreE);
 	}
-	neurones[nombre]=0;
+	neurons[nombre]=0;
 }
 
 void ARTOutputLayer::UnReset()
 {
-	for (int i=0; neurones[i]; i++) {
-		((ARTOutput*)neurones[i])->UnReset();
+	for (int i=0; neurons[i]; i++) {
+		((ARTOutput*)neurons[i])->UnReset();
 	}
 }
 
 void ARTOutputLayer::DesactiverNeurones()
 {
-	ARTCouche::DesactiverNeurones();
+	ARTLayer::DesactiverNeurones();
 	neuroneRaisonnance = 0;
 	iRaisonnance=-1;
 }
 
 void ARTOutputLayer::CalculerActivite()
 {
-	ARTCouche::CalculerActivite();
+	ARTLayer::CalculerActivite();
 
 	float valeurRaisonnance = -0.00001;
 	iRaisonnance = -1;
 	neuroneRaisonnance = (ARTOutput*) 0;
 
-	for (int i=0; neurones[i]; i++) {
-		if ( neurones[i]->Activite() > valeurRaisonnance) {
-			neuroneRaisonnance = (ARTOutput*) neurones[i];
-			valeurRaisonnance = neurones[i]->Activite();
+	for (int i=0; neurons[i]; i++) {
+		if ( neurons[i]->Activite() > valeurRaisonnance) {
+			neuroneRaisonnance = (ARTOutput*) neurons[i];
+			valeurRaisonnance = neurons[i]->Activite();
 			iRaisonnance = i;
 		}
 	}
@@ -440,8 +440,8 @@ void ARTOutputLayer::CalculerActivite()
 
 void ARTOutputLayer::SortieBinaire()
 {
-	for (int i=0; neurones[i]; i++)
-		neurones[i]->Sortie(0.0);
+	for (int i=0; neurons[i]; i++)
+		neurons[i]->Sortie(0.0);
 
 	if (neuroneRaisonnance)
 	{
@@ -466,10 +466,10 @@ void ARTOutputLayer::Display() {
 	std::string floatString;
 	std::string resultString;
 
-	for (int i=0; neurones[i]; i++){
-		floatString.append(std::to_string(neurones[i]->Sortie()));
+	for (int i=0; neurons[i]; i++){
+		floatString.append(std::to_string(neurons[i]->Sortie()));
 		floatString.append(" ");
-		if (neurones[i]->Sortie()>0.9) {
+		if (neurons[i]->Sortie()>0.9) {
 			resultString += std::to_string(i);
 			resultString += " ";
 		}
@@ -479,23 +479,23 @@ void ARTOutputLayer::Display() {
 	std::cout << "Answer " << resultString << "\n";
 }
 
-ARTNeurone* ARTOutputLayer::BestMatch() {
+ARTNeuron* ARTOutputLayer::BestMatch() {
 	float bestResult = 0;
 	int bestNeurone = -1;
 
-	for (int i=0; neurones[i]; i++){
-		float result = neurones[i]->Sortie();
+	for (int i=0; neurons[i]; i++){
+		float result = neurons[i]->Sortie();
 
 		if (result>0.9) {
 			if (result > bestResult) {
-				bestResult = neurones[i]->Sortie();
+				bestResult = neurons[i]->Sortie();
 				bestNeurone = i;
 			}
 		}
 	}
 
 	if (bestNeurone>=0) {
-		return neurones[bestNeurone];
+		return neurons[bestNeurone];
 	} else {
 		return 0;
 	}
@@ -505,9 +505,11 @@ ARTNeurone* ARTOutputLayer::BestMatch() {
 // IMPLEMENTATION ARTNetwork
 // **********************************************************************
 
-ARTNetwork::ARTNetwork(int nEntrees,int nSorties)
+ARTNetwork::ARTNetwork( ARTSettings* s,int nEntrees,int nSorties)
 {
-	reactivite = N_REACTIVITE;
+	settings = s;
+	
+	reactivite = settings->N_REACTIVITE;
 
 	inputs	= new ARTInputLayer(this, nEntrees, nSorties);
 	outputs	= new ARTOutputLayer(this, nSorties, nEntrees);

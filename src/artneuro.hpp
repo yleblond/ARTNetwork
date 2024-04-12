@@ -1,36 +1,20 @@
 #ifndef HEADER_ART_GENERAL
 #define HEADER_ART_GENERAL
 
-class ARTCouche;
+#include "artsettings.hpp"
+
+class ARTNeuron;
+class ARTLayer;
 class ARTNetwork;
-class ARTNeurone;
-typedef ARTNeurone* pARTNeurone;
-
-#define I_PERSISTANCE 		0.0
-#define I_RENFORCEMENT 		1.9
-#define I_INHIBATION 		2.1
-#define I_AUTOINHIBATION 	0.0
-#define I_VIGILANCE 		0.7 // 0.97
-#define I_PLASTICITE 		0.035
-
-#define O_PERSISTANCE 		0.0
-#define O_RENFORCEMENT 		1.6
-#define O_INHIBATION 		2.2
-#define O_AUTOINHIBATION 	0.0
-#define O_CONTRAINTE_PLASTICITE 1.4
-
-#define N_ITERATIONS		25
-#define N_REACTIVITE		0.1
-
+typedef ARTNeuron* pARTNeuron;
 #define RND01 ((float) ((float)rand() / (float)RAND_MAX))
 
-
-class ARTNeurone
+class ARTNeuron
 {
 	private:
-		ARTCouche*	couche;
+		ARTLayer*	layer;
 	public:
-		ARTCouche* Couche() { return couche; }
+		ARTLayer* Layer() { return layer; }
 
 	private:
 		float	sortie;
@@ -56,11 +40,10 @@ class ARTNeurone
 		virtual float CalculerExitation();
 
 	public:
-		ARTNeurone(ARTCouche* pCouche, int nombreLiens);
-		virtual ~ARTNeurone();
+		ARTNeuron(ARTLayer* pCouche, int nombreLiens);
+		virtual ~ARTNeuron();
 	
 	public:
-		virtual ARTCouche* CoucheART()	    { return (ARTCouche*) Couche(); }
 		virtual void Desactiver();
 		virtual void CalculerVariation();
 		virtual float CalculerActivite();
@@ -71,7 +54,7 @@ class ARTNeurone
 		void displayPoids(float threshold, int width);
 };
 
-class ARTInput : public ARTNeurone
+class ARTInput : public ARTNeuron
 {
 		float	entree;
 	public:
@@ -83,14 +66,14 @@ class ARTInput : public ARTNeurone
 		virtual float  	CalculerActivite();
 		virtual void  	CalculerPoids();
 	public:
-		ARTInput(ARTCouche* pCouche, int nS) : ARTNeurone(pCouche,nS)
+		ARTInput(ARTLayer* pCouche, int nS) : ARTNeuron(pCouche,nS)
 		{
 			entree	 = 0.0;
 		}
 
 };
 
-class ARTOutput : public ARTNeurone
+class ARTOutput : public ARTNeuron
 {
 		int 	isReset;
 	public:
@@ -100,24 +83,24 @@ class ARTOutput : public ARTNeurone
 		virtual float CalculerInhibation();
 		virtual float CalculerExitation();
 	public:
-		ARTOutput(ARTCouche* pCouche,int nE) : ARTNeurone(pCouche,nE) {}
+		ARTOutput(ARTLayer* pCouche,int nE) : ARTNeuron(pCouche,nE) {}
 	public:
 		virtual float	CalculerActivite();
 		virtual void 	CalculerPoids();
 		virtual float 	CalculerSortie();
 };
 
-class ARTCouche 
+class ARTLayer 
 {
 	protected:
-		ARTNeurone** neurones;
+		ARTNeuron** neurons;
 
 	protected:
-		ARTNetwork*	reseau;
+		ARTNetwork*	network;
 	public:
-		virtual ARTNetwork* ReseauART()
+		virtual ARTNetwork* Network()
 		{
-			return (ARTNetwork*) reseau;
+			return network;
 		}
 
 	protected:
@@ -133,8 +116,8 @@ class ARTCouche
 		float autoInhibation;
 		float plasticite;
 	public:
-		ARTCouche(ARTNetwork* reseauART);
-		virtual ~ARTCouche();
+		ARTLayer(ARTNetwork* reseauART);
+		virtual ~ARTLayer();
 	public:
 		virtual void DesactiverNeurones();
 		virtual void CalculerActivite();
@@ -145,22 +128,14 @@ class ARTCouche
 		virtual float AutoInhibation()	{ return autoInhibation; }
 		virtual float Plasticite()		{ return plasticite; }
 	public:
-		virtual ARTNeurone* NeuroneART(int i)
-		{
-			return (ARTNeurone*) Neurone(i);
-		}
-	public:
-		virtual ARTNeurone* Neurone(int i)
-		{
-			return neurones[i];
-		}
+		virtual ARTNeuron* Neuron(int i) { return neurons[i]; }
 		virtual float PoidAleatoire();
 	public:
 		void displayAllPoids(float threshold, int width);
 };
 
 
-class ARTInputLayer : public ARTCouche
+class ARTInputLayer : public ARTLayer
 {
 	private:
 
@@ -179,7 +154,7 @@ class ARTInputLayer : public ARTCouche
 };
 
 
-class ARTOutputLayer : public ARTCouche
+class ARTOutputLayer : public ARTLayer
 {
 	private:
 		float contraintePlasticite;
@@ -205,18 +180,21 @@ class ARTOutputLayer : public ARTCouche
 		virtual float PoidAleatoire();
 
 	public:
-		ARTNeurone* BestMatch();
+		ARTNeuron* BestMatch();
 		void Display();
 
 };
 
 class ARTNetwork 
 {
+	public:
+		ARTSettings*		settings;
+	public:
 		ARTInputLayer*		inputs;
 		ARTOutputLayer*		outputs;
 		float 				reactivite;
 	public:
-		ARTNetwork(int nEntrees,int nSorties);
+		ARTNetwork(ARTSettings* settings, int nEntrees,int nSorties);
 		void Apprendre(float* figure,int nIteration);
 		void Demander(float* figure,int nIteration);
 		void Demarrer();

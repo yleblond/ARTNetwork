@@ -1,18 +1,28 @@
 #include <iostream>
+#include "artsettings.hpp"
+#include "prgsettings.hpp"
 #include "image.hpp"
 #include <fstream>
 #include <string>
 
-#define NSORTIES	50
-
-#define LEARNING_LOOPS	1
-#define LEARNING_ITERATION	100
-
-#define QUERY_ITERATION	100
-
-#define WEIGHT_DISPLAY_THREESHOLD	0.01
-
 typedef unsigned char uchar;
+
+
+ARTSettings* getNetworkSettings() {
+    ARTSettings* s = new ARTSettings();
+    s->nOutputs = 40;
+    s->I_VIGILANCE = 0.8;
+    return s;
+}
+
+ProcessSettings* getProcessSettings() {
+    ProcessSettings* s = new ProcessSettings();
+    s->LEARNING_MAXITEMS = -1;
+    s->QUERY_MAXITEMS = -1;
+    return s;
+}
+
+
 
 uchar** read_mnist_images(std::string full_path, int& number_of_images, int& image_size, int& image_width, int& image_height) {
     auto reverseInt = [](int i) {
@@ -136,8 +146,12 @@ int test(void)
     return 0;
 }
 
-Image** getMnistFiles(const char* labelFile, const char* imageFile,int& ne,int &ni, int& w,int &h)
+
+ImageSet* getMnistFiles(const char* labelFile, const char* imageFile)
 {
+    ImageSet* set = new ImageSet();
+
+
     printf("Load MNIST files !!!\n");
     
     int numberOfImages;
@@ -154,21 +168,13 @@ Image** getMnistFiles(const char* labelFile, const char* imageFile,int& ne,int &
     printf("image_width %d\n", image_width);
     printf("image_heigth %d\n", image_heigth);
     printf("numberOfLabels %d\n", numberOfLabels);
-
-/*       
-    for(int i = 0; i < numberOfLabels; i++) {
-        printf("label[%d] -> %d\n", i, labels[i]);
-    }
-    for(int j = 0; j < numberOfImages; j++) {
-		    printf("image[%d] : %d\n", j, (j<numberOfLabels) ? labels[j] : -1);
-		    // printArrayAsHex(images[j], image_size, image_width);
-        }
-*/
            
-	ne = numberOfImages;
-	ni = image_size;
-	w = image_width;
-    h = image_heigth;
+    set->nEntrees = image_size;
+	set->nExemples = numberOfImages;
+	set->imageSize = image_size;
+	set->width = image_width;
+    set->height = image_heigth;
+
 
 	Image** figure = (Image**) calloc(numberOfImages+1,sizeof(Image*));
 
@@ -188,16 +194,16 @@ Image** getMnistFiles(const char* labelFile, const char* imageFile,int& ne,int &
     }
 	figure[numberOfImages]=0;
 
-	return figure;
+    set->learningFigure = figure;
+	return set;
 }
 
-Image** getLearningPattern(int& ne,int &ni, int& w,int &h)
+ImageSet* getLearningPattern()
 {
-	return getMnistFiles("./train-labels.idx1-ubyte","./train-images.idx3-ubyte",ne,ni,w,h);
+	return getMnistFiles("./train-labels.idx1-ubyte","./train-images.idx3-ubyte");
 }
 
-Image** getReconnaissancePattern(int& ne,int &ni, int& w,int &h)
+ImageSet* getReconnaissancePattern()
 {
-	return getMnistFiles("./t10k-labels.idx1-ubyte","./t10k-images.idx3-ubyte",ne,ni,w,h);
+	return getMnistFiles("./t10k-labels.idx1-ubyte","./t10k-images.idx3-ubyte");
 }
-

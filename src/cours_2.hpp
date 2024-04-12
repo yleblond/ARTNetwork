@@ -1,17 +1,31 @@
 
 #include <string.h>
 #include "image.hpp"
+
+#include "artsettings.hpp"
+#include "prgsettings.hpp"
+
 #include <iostream>
 #include <fstream>
 
-#define NSORTIES	12
 
-#define LEARNING_LOOPS	50
-#define LEARNING_ITERATION	500
+ARTSettings* getNetworkSettings() {
+    ARTSettings* s = new ARTSettings();
+    s->nOutputs = 25;
+	s->WEIGHT_DISPLAY_THREESHOLD = 0.05;
 
-#define QUERY_ITERATION	30
+	s->I_VIGILANCE = 0.98;
 
-#define WEIGHT_DISPLAY_THREESHOLD	0.05
+    return s;
+}
+
+ProcessSettings* getProcessSettings() {
+    ProcessSettings* s = new ProcessSettings();
+	s->LEARNING_LOOPS = 50;
+	s->LEARNING_ITERATION = 100;
+	s->QUERY_ITERATION = 5;
+    return s;
+}
 
 #define K 1.0
 #define _ 0.0
@@ -139,10 +153,8 @@ float lettre_T[NENTREES] ={ 	K,K,K,K,K,
 				_,_,K,_,_,
 				_,_,K,_,_ };
 
-float** getPattern(int& ne,int &ni)
+float** getPattern()
 {
-	ne = NEXEMPLE;
-	ni = NENTREES;
 	float** figure = (float**) calloc(NEXEMPLE+1,sizeof(float*));
 	figure[0] = lettre_A;
 	figure[1] = lettre_B;
@@ -170,33 +182,37 @@ float** getPattern(int& ne,int &ni)
 }
 
 
-Image** getImages(int& ne,int &ni, int& w,int &h)
-{
-	float** patterns = getPattern(ne,ni);
+ImageSet* getImages() {
+	float** patterns = getPattern();
 
-	Image** figure = (Image**) calloc(ne+1,sizeof(Image*));
+	Image** figure = (Image**) calloc(NEXEMPLE+1,sizeof(Image*));
 
-    for(int k = 0; k < ne; k++) {
+    for(int k = 0; k < NEXEMPLE; k++) {
     	// create image object
     	figure[k] = new Image();
     	figure[k]->setData(patterns[k]);
     	figure[k]->setLabel('-');
         figure[k]->setDimensions(5, 5);
     }
-	figure[ne]=0;
+	figure[NEXEMPLE]=0;
 
-	w=5;
-	h=5;
-
-	return figure;
+	ImageSet* set = new ImageSet();
+	set->nEntrees = 25;
+	set->nExemples = NEXEMPLE;
+	set->imageSize = 25;
+	set->width = 5;
+    set->height = 5;
+	set->learningFigure = figure;
+	return set;
 }
 
-Image** getLearningPattern(int& ne,int &ni, int& w,int &h)
+ImageSet* getLearningPattern()
 {
-	return getImages(ne,ni,w,h);
+	return getImages();
 }
 
-Image** getReconnaissancePattern(int& ne,int &ni, int& w,int &h)
+ImageSet* getReconnaissancePattern()
 {
-	return getImages(ne,ni,w,h);
+	return getImages();
 }
+

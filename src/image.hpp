@@ -50,6 +50,20 @@ class Image
     	}
 };
 
+class ImageSet {
+	public:
+		int nExemples;
 
+		int nEntrees;
+
+		int imageSize;
+		int width;
+		int height;
+
+		Image** learningFigure;
+
+		ImageSet(){}
+
+};
 
 #endif
